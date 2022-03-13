@@ -1,5 +1,4 @@
 # Pacman
-3rd part: using textures with SDL.
 
 New functions, structures and constants used:
 - Functions
