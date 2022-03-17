@@ -9,39 +9,115 @@
 #pragma comment( lib, "SDL_image/libx86/SDL2_image.lib" )
 #pragma comment( lib, "SDL_Mixer/libx86/SDL2_mixer.lib" )
 
-
 #include "Entity.h"
 
-#define WINDOW_WIDTH	1024
-#define WINDOW_HEIGHT	768
+#define WINDOW_WIDTH	896
+#define WINDOW_HEIGHT	992
 #define MAX_KEYS		256
-#define MAX_SHOTS		32
+#define H				31
+#define W				29
 
 class Game
 {
 public:
 	Game();
+	Game(char playfield[H][W]);
 	~Game();
 
 	bool Init();
 	bool LoadImages();
 	void Release();
-	
+
 	bool Input();
+	bool LoadSound();
+	void Logic_Pacman();
+	void Logic_Ghost();
 	bool Update();
+	void GetRect2(int* x, int* y, int* w, int* h);
 	void Draw();
 
 private:
-	SDL_Window *Window;
-	SDL_Renderer *Renderer;
-	SDL_Texture *img_background, *img_player, *img_shot;
-	Mix_Chunk* sample;
+	SDL_Window* Window;
+	SDL_Renderer* Renderer;
+	SDL_Texture* img_background, * img_pacman, * img_food, *img_powerup, * img_ghostRed;
+	SDL_Texture* pacman_up, * pacman_down, * pacman_left, * pacman_right, * pacman_birth;
+	Mix_Chunk* gamestartsound, * wakasound_1, * wakasound_2, * deathsound, * eatfruitsound, * eatghostsound, * powerpelletsound;
 
-	Entity Player, Shots[MAX_SHOTS], Scene;
+	Entity Pacman, GhostRed, Scene, Food[H][W];
 	int idx_shot;
 
 	bool god_mode;
 
-	enum KEY_STATE { KEY_IDLE, KEY_DOWN, KEY_REPEAT, KEY_UP	};
-	KEY_STATE keys[MAX_KEYS]; 
+	enum KEY_STATE { KEY_IDLE, KEY_DOWN, KEY_REPEAT, KEY_UP };
+	KEY_STATE keys[MAX_KEYS];
+
+	char playfield[H][W] =
+	{
+		{"############################"},
+		{"#············##············#"},
+		{"#+####·#####·##·#####·####+#"},
+		{"#·####·#####·##·#####·####·#"},
+		{"#·####·#####·##·#####·####·#"},
+		{"#··························#"},
+		{"#·####·##·########·##·####·#"},
+		{"#·####·##·########·##·####·#"},
+		{"#······##····##····##······#"},
+		{"######·##### ## #####·######"},
+		{"######·##### ## #####·######"},
+		{"######·##          ##·######"},
+		{"######·## ###  ### ##·######"},
+		{"######·## #      # ##·######"},
+		{"      ·   #      #   ·      "},
+		{"######·## #      # ##·######"},
+		{"######·## ######## ##·######"},
+		{"######·##          ##·######"},
+		{"######·## ######## ##·######"},
+		{"######·## ######## ##·######"},
+		{"#············##············#"},
+		{"#·####·#####·##·#####·####·#"},
+		{"#·####·#####·##·#####·####·#"},
+		{"#+··##·······  ·······##··+#"},
+		{"###·##·##·########·##·##·###"},
+		{"###·##·##·########·##·##·###"},
+		{"#······##····##····##······#"},
+		{"#·##########·##·##########·#"},
+		{"#·##########·##·##########·#"},
+		{"#··························#"},
+		{"############################"},
+	};
+
+	char logic[H][W] =
+	{
+		{"############################"},
+		{"#C   LIR    C##C    LIR   C#"},
+		{"# ####D##### ## #####D#### #"},
+		{"# #### ##### ## ##### #### #"},
+		{"#U####U#####U##U#####U####U#"},
+		{"#IR  LIRLIRLIRLIRLIRLIR  LI#"},
+		{"#D####D##D########D##D####D#"},
+		{"# ####U## ######## ##U#### #"},
+		{"#C   LI##C  C##C  C##IR   C#"},
+		{"######D##### ## #####D######"},
+		{"###### #####U##U##### ######"},
+		{"###### ##C LIRLIR C## ######"},
+		{"###### ## ######## ## ######"},
+		{"######U##U#      #U##U######"},
+		{"T    LIRLI#      #IRLIR    T"},
+		{"######D##D#      #D##D######"},
+		{"###### ##U########U## ######"},
+		{"###### ##IR      LI## ######"},
+		{"###### ##D########D## ######"},
+		{"######U##U########U##U######"},
+		{"#C   LIRLIR C##C LIRLIR   C#"},
+		{"# ####D##### ## #####D#### #"},
+		{"# ####U#####U##U#####U#### #"},
+		{"#C C##IRLIRLIRLIRLIRLI##C C#"},
+		{"### ##D##D########D##D## ###"},
+		{"###U## ## ######## ## ##U###"},
+		{"#CLIR C##C  C##C  C##C LIRC#"},
+		{"# ########## ## ########## #"},
+		{"# ##########U##U########## #"},
+		{"#C         LIRLIR         C#"},
+		{"############################"},
+	};
 };

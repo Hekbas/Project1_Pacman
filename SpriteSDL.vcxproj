@@ -13,7 +13,6 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{32FA443B-BBC1-412B-9466-BAECCE569F0D}</ProjectGuid>
     <RootNamespace>SpriteSDL</RootNamespace>
-    <ProjectName>PacMan</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -69,6 +68,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.h" />

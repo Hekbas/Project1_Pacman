@@ -8,12 +8,11 @@ int main(int argc, char* args[])
 	bool end = false;
 	while (!end)
 	{
-		// force a quit
-		while (Mix_Init(0))
-			Mix_Quit();
-
 		end = game.Update();
+		game.Logic_Pacman();
+		game.Logic_Ghost();
 		game.Draw();
+		//SDL_Delay(200);
 	}
 
 	game.Release();
