@@ -13,7 +13,7 @@ Game::Game(char playfield[H][W])
 
 
 
-bool Game::ResetVariables()
+void Game::ResetVariables()
 {
 	//Initialize keys array
 	for (int i = 0; i < MAX_KEYS; ++i)
@@ -34,13 +34,9 @@ bool Game::ResetVariables()
 	//Init variables
 	//size: 104x82
 
-
-
 	Pacman.InitPacman(13, 23, 0, 0, -1, 0, true);
 	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
 	
-
-	idx_shot = 0;
 	int w;
 	SDL_QueryTexture(img_background, NULL, NULL, &w, NULL);
 	Scene.Init(0, 0, w, WINDOW_HEIGHT, 4);
@@ -53,11 +49,10 @@ bool Game::ResetVariables()
 		}
 	}
 
-	
-
-	return true;
+	//lives an points
+	Status.SetLives(2);
+	Status.SetScore(0);
 }
-
 
 bool Game::Init()
 {
@@ -286,6 +281,28 @@ bool Game::Input()
 	return true;
 }
 
+void Game::DeathSequence()
+{
+	Pacman.SetX(13);
+	Pacman.SetY(23);
+	Pacman.SetVx(-1);
+	Pacman.SetVy(0);
+
+	/*if (status.frightened == true)
+	{
+		status.frightened = false;
+	}*/
+	//else
+	//{
+		Status.SetLives(Status.GetLives() - 1);
+
+		GhostRed.SetX(13);
+		GhostRed.SetY(11);
+		GhostRed.SetVx(-1);
+		GhostRed.SetVy(0);
+	//}
+}
+
 void Game::Logic_Pacman()
 {
 	int x = Pacman.GetX();
@@ -295,54 +312,65 @@ void Game::Logic_Pacman()
 	int vxTurn = Pacman.GetVxTurn();
 	int vyTurn = Pacman.GetVyTurn();
 
-	// delete PacMan from old position
-	playfield[y][x] = ' ';
+	int xG = GhostRed.GetX();
+	int yG = GhostRed.GetY();
 
-	if (x == 0 && y == 14 && vx == -1)  //left teleport
-		x = 27;
-	else if (x == 27 && y == 14 && vx == 1)  //right teleport
-		x = 0;
+	//check for death
+	if (x == xG && y == yG)
+	{
+		DeathSequence();
+	}
 	else
 	{
-		// new coordinates (turn)
-		int xTurn = vxTurn + x;
-		int yTurn = vyTurn + y;
-		// new coordinates (straight)
-		int xStraight = vx + x;
-		int yStraight = vy + y;
+		// delete PacMan from old position
+		playfield[y][x] = ' ';
 
-		if (playfield[yTurn][xTurn] != '#')    //try turning
+		if (x == 0 && y == 14 && vx == -1)  //left teleport
+			x = 27;
+		else if (x == 27 && y == 14 && vx == 1)  //right teleport
+			x = 0;
+		else
 		{
-			vx = vxTurn;
-			vy = vyTurn;
-		}
-		else if (playfield[yStraight][xStraight] == '#')    //try going straight
-		{
-			vx = 0;
-			vy = 0;
-		}
+			// new coordinates (turn)
+			int xTurn = vxTurn + x;
+			int yTurn = vyTurn + y;
+			// new coordinates (straight)
+			int xStraight = vx + x;
+			int yStraight = vy + y;
 
-		// update PacMan's coordinate
-		x += vx;
-		y += vy;
+			if (playfield[yTurn][xTurn] != '#')    //try turning
+			{
+				vx = vxTurn;
+				vy = vyTurn;
+			}
+			else if (playfield[yStraight][xStraight] == '#')    //try going straight
+			{
+				vx = 0;
+				vy = 0;
+			}
 
-		// what's in the new location?
-		if (playfield[y][x] == '·')
-		{
-			Status.SetScore(Status.GetScore() + 10);
-			LOG("+10");
+			// update PacMan's coordinate
+			x += vx;
+			y += vy;
+
+			// what's in the new location?
+			if (playfield[y][x] == '·')
+			{
+				Status.SetScore(Status.GetScore() + 10);
+				LOG("+10");
+			}
+			else if (playfield[y][x] == '+')
+			{
+				Status.SetScore(Status.GetScore() + 50);
+				LOG("+50");
+			}
 		}
-		else if (playfield[y][x] == '+')
-		{
-			Status.SetScore(Status.GetScore() + 50);
-			LOG("+50");
-		}
+		// change xy
+		Pacman.SetX(x);
+		Pacman.SetY(y);
+		Pacman.SetVx(vx);
+		Pacman.SetVy(vy);
 	}
-	// change xy
-	Pacman.SetX(x);
-	Pacman.SetY(y);
-	Pacman.SetVx(vx);
-	Pacman.SetVy(vy);
 }
 
 void Game::Logic_Ghost()
@@ -357,122 +385,106 @@ void Game::Logic_Ghost()
 	int xP = Pacman.GetX();
 	int yP = Pacman.GetY();
 	
-
-	if (x == xP && y == yP)  //eaten pacMan?
+	//check for death
+	if (x == xP && y == yP)
 	{
-		x = 13;
-		y = 11;
-
-		vx = -1;
-		vy = 0;
-
-
-		/*if (status.frightened == true)
-		{
-			status.frightened = false;
-		}*/
-		//else
-		//{
-			Status.SetLives(Status.GetLives()-1);
-			Pacman.SetX(13);
-			Pacman.SetY(23);
-			GhostRed.SetVx(-1);
-			GhostRed.SetVy(0);
-		//}
-
+		DeathSequence();
 	}
-	else if (logic[y][x] == 'I')  //chek for intersections
+	else
 	{
-		float distMin = 100;
-		char bestPath;
-
-		for (int i = y - 1; i < y + 2; i++)
+		if (logic[y][x] == 'I')  //chek for intersections
 		{
-			for (int j = x - 1; j < x + 2; j++)
+			float distMin = 100;
+			char bestPath;
+
+			for (int i = y - 1; i < y + 2; i++)
 			{
-				//check for paths 1 tyle around, excluding the one it came from
-				if((logic[i][j] == 'L' ||
-					logic[i][j] == 'R' ||
-					logic[i][j] == 'U' ||
-					logic[i][j] == 'D') &&
-					logic[i][j] != posOld)
+				for (int j = x - 1; j < x + 2; j++)
 				{
-					int xDelta;
-					int yDelta;
-
-					//find wich path has the shortest distance (straight line) to pacMan
-					if (chase == true)
+					//check for paths 1 tyle around, excluding the one it came from
+					if ((logic[i][j] == 'L' ||
+						logic[i][j] == 'R' ||
+						logic[i][j] == 'U' ||
+						logic[i][j] == 'D') &&
+						logic[i][j] != posOld)
 					{
-						xDelta = i - yP;
-						yDelta = j - xP;
-					}
-					else
-					{
-						xDelta = i - 0;
-						yDelta = j - 27;
-					}
+						int xDelta;
+						int yDelta;
 
-					float dist = hypot(xDelta, yDelta);
+						//find wich path has the shortest distance (straight line) to pacMan
+						if (chase == true)
+						{
+							xDelta = i - yP;
+							yDelta = j - xP;
+						}
+						else
+						{
+							xDelta = i - 0;
+							yDelta = j - 27;
+						}
 
-					if (dist < distMin)
-					{
-						distMin = dist;
-						bestPath = logic[i][j];
+						float dist = hypot(xDelta, yDelta);
+
+						if (dist < distMin)
+						{
+							distMin = dist;
+							bestPath = logic[i][j];
+						}
 					}
 				}
 			}
-		}
 
-		//change ghost speed to follow "best" path
-		switch (bestPath)
-		{
-		case 'L': GhostRed.SetVx(-1); GhostRed.SetVy(0); break;
-		case 'R': GhostRed.SetVx(1); GhostRed.SetVy(0);  break;
-		case 'U': GhostRed.SetVx(0); GhostRed.SetVy(-1); break;
-		case 'D': GhostRed.SetVx(0); GhostRed.SetVy(1);  break;
-		default: break;
+			//change ghost speed to follow "best" path
+			switch (bestPath)
+			{
+			case 'L': GhostRed.SetVx(-1); GhostRed.SetVy(0); break;
+			case 'R': GhostRed.SetVx(1); GhostRed.SetVy(0);  break;
+			case 'U': GhostRed.SetVx(0); GhostRed.SetVy(-1); break;
+			case 'D': GhostRed.SetVx(0); GhostRed.SetVy(1);  break;
+			default: break;
+			}
 		}
-	}
-	else if (logic[y][x] == 'C')  //chek for corners
-	{
-		if (vx != 0)
+		else if (logic[y][x] == 'C')  //chek for corners
 		{
-			GhostRed.SetVx(0);
+			if (vx != 0)
+			{
+				GhostRed.SetVx(0);
 
-			if (logic[y - 1][x] != '#') //check UP
-				GhostRed.SetVy(-1);
+				if (logic[y - 1][x] != '#') //check UP
+					GhostRed.SetVy(-1);
+				else
+					GhostRed.SetVy(1);
+			}
 			else
-				GhostRed.SetVy(1);
+			{
+				GhostRed.SetVy(0);
+
+				if (logic[y][x - 1] != '#') //check LEFT
+					GhostRed.SetVx(-1);
+				else
+					GhostRed.SetVx(1);
+			}
 		}
-		else
+		else    //set actual pos as posOld
 		{
-			GhostRed.SetVy(0);
-
-			if (logic[y][x - 1] != '#') //check LEFT
-				GhostRed.SetVx(-1);
-			else
-				GhostRed.SetVx(1);
+			switch (logic[y][x])
+			{
+			case 'L': GhostRed.SetPosOld('L');  break;
+			case 'R': GhostRed.SetPosOld('R');  break;
+			case 'U': GhostRed.SetPosOld('U');  break;
+			case 'D': GhostRed.SetPosOld('D');  break;
+			default: break;
+			}
 		}
+
+		// update ghost pos
+		x += GhostRed.GetVx();
+		y += GhostRed.GetVy();
+
+
+		GhostRed.SetX(x);
+		GhostRed.SetY(y);
 	}
-	else    //set actual pos as posOld
-	{
-		switch (logic[y][x])
-		{
-		case 'L': GhostRed.SetPosOld('L');  break;
-		case 'R': GhostRed.SetPosOld('R');  break;
-		case 'U': GhostRed.SetPosOld('U');  break;
-		case 'D': GhostRed.SetPosOld('D');  break;
-		default: break;
-		}
-	}
-
-	// update ghost pos
-	x += GhostRed.GetVx();
-	y += GhostRed.GetVy();
-
-
-	GhostRed.SetX(x);
-	GhostRed.SetY(y);
 }
 
 bool Game::UpdateMenu()
@@ -550,6 +562,8 @@ bool Game::Update()
 		}
 	}
 	return true;
+
+
 }
 
 void Game::GetRect2(int* x, int* y, int* w, int* h) {

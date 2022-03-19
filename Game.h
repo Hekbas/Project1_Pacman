@@ -34,6 +34,7 @@ public:
 	bool LoadSound();
 	void Logic_Pacman();
 	void Logic_Ghost();
+	void DeathSequence();
 	bool Update();
 	void GetRect2(int* x, int* y, int* w, int* h);
 	void Draw();
@@ -41,7 +42,7 @@ public:
 	bool UpdateMenu();
 	bool GetContinueMenu();
 
-	bool ResetVariables();
+	void ResetVariables();
 
 private:
 	SDL_Window* Window;
@@ -145,7 +146,7 @@ private:
 		{"###### ##C LIRLIR C## ######"},
 		{"###### ## ######## ## ######"},
 		{"######U##U#      #U##U######"},
-		{"T    LIRLI#      #IRLIR    T"},
+		{"T     IRLI#      #IRLI     T"},
 		{"######D##D#      #D##D######"},
 		{"###### ##U########U## ######"},
 		{"###### ##IR      LI## ######"},

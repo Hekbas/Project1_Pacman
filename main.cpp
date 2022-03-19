@@ -8,20 +8,21 @@ int main(int argc, char* args[])
 	bool end = false;
 
 	//
-	//while (!end) {
-		while (game.UpdateMenu() == false) {
+		while (game.UpdateMenu() == false)
+		{
 			if (game.GetContinueMenu() == true)
 			{
 				end = false;
-				if (!game.ResetVariables()) return -1;
 				while (!end)
 				{
 					end = game.Update();
 					game.Logic_Pacman();
 					game.Logic_Ghost();
 					game.Draw();
-					//SDL_Delay(200);
+					SDL_Delay(50);
 				}
+
+				game.ResetVariables();
 			}
 		}
 	//}
