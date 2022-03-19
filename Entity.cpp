@@ -1,5 +1,5 @@
 #include "Game.h"
-//EJEMPLO
+
 Entity::Entity()
 {
 	is_alive = false;
@@ -13,8 +13,12 @@ void Entity::Init(int posx, int posy, int w, int h, int s)
 	y = posy;
 	width = w;
 	height = h;
-	speed = s;
 	is_alive = true;
+}
+void Entity::Status(int score, int lives)
+{
+	this->score = score;
+	this->lives = lives;
 }
 void Entity::InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bool is_alive)
 {
@@ -84,6 +88,13 @@ int Entity::GetWidth() { return width; }
 
 void Entity::ShutDown() { is_alive = false; }
 bool Entity::IsAlive() { return is_alive; }
+
+int Entity::GetScore() { return score; }
+void Entity::SetScore(int score) { this->score = score; }
+
+int Entity::GetLives() { return lives; }
+void Entity::SetLives(int lives) { this->lives = lives; }
+
 void Entity::Move(int dx, int dy)
 {
 	x += dx * speed;

@@ -7,6 +7,7 @@ public:
 	~Entity();
 
 	void Init(int posx, int posy, int w, int h, int s);
+	void Status(int score, int lives);
 	void InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bool is_alive);
 	void InitGhost(int x, int y, int vx, int vy, bool is_alive, bool chase, char posOld);
 
@@ -41,6 +42,12 @@ public:
 	bool IsAlive();
 	void Move(int dx, int dy);
 
+	int GetScore();
+	void SetScore(int score);
+
+	int GetLives();
+	void SetLives(int lives);
+
 private:
 	int x, y;
 	int vx, vy;
@@ -52,4 +59,6 @@ private:
 	bool chase;
 
 	char posOld;
+	int score;
+	int lives;
 };
