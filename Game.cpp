@@ -50,7 +50,8 @@ bool Game::Init()
 	
 	//Init variables
 	//size: 104x82
-
+	
+	Status.Status(0, 2);
 	Pacman.InitPacman( 13, 23, 0, 0, -1, 0, true);
 	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
 
@@ -281,13 +282,13 @@ void Game::Logic_Pacman()
 		// what's in the new location?
 		if (playfield[y][x] == '·')
 		{
-			//status.points += 10;
-
+			Status.SetScore(Status.GetScore() + 10);
+			LOG("+10");
 		}
 		else if (playfield[y][x] == '+')
 		{
-			//status.points += 50;
-			//status.frightened = true;
+			Status.SetScore(Status.GetScore() + 50);
+			LOG("+50");
 		}
 	}
 	// change xy
@@ -318,18 +319,20 @@ void Game::Logic_Ghost()
 		vx = -1;
 		vy = 0;
 
-		/*
-		if (status.frightened == true)
+
+		/*if (status.frightened == true)
 		{
 			status.frightened = false;
-		}
-		else
-		{
-			status.lives--;
-			myPacMan.pos.x = 13;
-			myPacMan.pos.y = 23;
-		}
-		*/
+		}*/
+		//else
+		//{
+			Status.SetLives(Status.GetLives()-1);
+			Pacman.SetX(13);
+			Pacman.SetY(23);
+			GhostRed.SetVx(-1);
+			GhostRed.SetVy(0);
+		//}
+
 	}
 	else if (logic[y][x] == 'I')  //chek for intersections
 	{
@@ -459,10 +462,22 @@ bool Game::Update()
 		img_pacman = pacman_right;
 	}
 
-	//Pacman update
-	Pacman.Move(fx, fy);
+	//lives = 0?
+	if (Status.GetLives() == 0)
+	{
+		return true;
+	}
 
-	return false;
+	//Eaten all dots?
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			if (playfield[i][j] == '·')
+				return false;
+		}
+	}
+	return true;
 }
 
 void Game::GetRect2(int* x, int* y, int* w, int* h) {

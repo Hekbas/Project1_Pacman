@@ -1,4 +1,5 @@
 #pragma once
+#include <windows.h>
 
 #include "SDL/include/SDL.h"
 #include "SDL_image/include/SDL_image.h"
@@ -11,6 +12,7 @@
 
 #include "Entity.h"
 
+#define LOG(txt) OutputDebugString(txt)
 #define WINDOW_WIDTH	896
 #define WINDOW_HEIGHT	992
 #define MAX_KEYS		256
@@ -43,7 +45,7 @@ private:
 	SDL_Texture* pacman_up, * pacman_down, * pacman_left, * pacman_right, * pacman_birth;
 	Mix_Chunk* gamestartsound, * wakasound_1, * wakasound_2, * deathsound, * eatfruitsound, * eatghostsound, * powerpelletsound;
 
-	Entity Pacman, GhostRed, Scene, Food[H][W];
+	Entity Pacman, GhostRed, Scene, Food[H][W], Status;
 	int idx_shot;
 
 	bool god_mode;
