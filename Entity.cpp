@@ -1,5 +1,5 @@
 #include "Game.h"
-
+//EJEMPLO
 Entity::Entity()
 {
 	is_alive = false;
