@@ -12,6 +12,53 @@ Game::Game(char playfield[H][W])
 }
 
 
+
+bool Game::ResetVariables()
+{
+	//Initialize keys array
+	for (int i = 0; i < MAX_KEYS; ++i)
+		keys[i] = KEY_IDLE;
+
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			playfield[i][j] = playfieldOriginal[i][j];
+		}
+	}
+
+	//PACMAN INITIALIZING NICE FRESCO sexo
+
+	img_pacman = pacman_birth;
+
+	//Init variables
+	//size: 104x82
+
+
+
+	Pacman.InitPacman(13, 23, 0, 0, -1, 0, true);
+	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
+	
+
+	idx_shot = 0;
+	int w;
+	SDL_QueryTexture(img_background, NULL, NULL, &w, NULL);
+	Scene.Init(0, 0, w, WINDOW_HEIGHT, 4);
+
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			Food[i][j].Init(32 * i, 32 * j, 32, 32, 10);
+		}
+	}
+
+	
+
+	return true;
+}
+
+
 bool Game::Init()
 {
 	//Initialize SDL with all subsystems
@@ -147,22 +194,22 @@ bool Game::LoadImages()
 		return false;
 	}
 	pacman_down = SDL_CreateTextureFromSurface(Renderer, IMG_Load("Sprites/pacman/pacman_down.png"));
-	if (pacman_up == NULL) {
+	if (pacman_down == NULL) {
 		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
 		return false;
 	}
 	pacman_left = SDL_CreateTextureFromSurface(Renderer, IMG_Load("Sprites/pacman/pacman_left.png"));
-	if (pacman_up == NULL) {
+	if (pacman_left == NULL) {
 		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
 		return false;
 	}
 	pacman_right = SDL_CreateTextureFromSurface(Renderer, IMG_Load("Sprites/pacman/pacman_right.png"));
-	if (pacman_up == NULL) {
+	if (pacman_right == NULL) {
 		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
 		return false;
 	}
 	pacman_birth = SDL_CreateTextureFromSurface(Renderer, IMG_Load("Sprites/pacman/pacman_birth.png"));
-	if (pacman_up == NULL) {
+	if (pacman_birth == NULL) {
 		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
 		return false;
 	}
@@ -423,6 +470,31 @@ void Game::Logic_Ghost()
 
 	GhostRed.SetX(x);
 	GhostRed.SetY(y);
+}
+
+bool Game::UpdateMenu()
+{
+	if (!Input())	return true;
+	//EXIT
+	if (keys[SDL_SCANCODE_ESCAPE] == KEY_DOWN)
+	{
+		continuemenu = false;
+		return true;
+	}
+	//COME IN
+	if (keys[SDL_SCANCODE_SPACE] == KEY_DOWN)
+	{
+		continuemenu = true;
+		return false;
+	}
+
+	continuemenu = false;
+	return false;
+}
+
+bool Game::GetContinueMenu()
+{
+	return continuemenu;
 }
 
 bool Game::Update()
