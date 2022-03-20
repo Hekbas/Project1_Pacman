@@ -13,6 +13,48 @@ Game::Game(char playfield[H][W])
 }
 
 
+void Game::ResetVariables()
+{
+	//Initialize keys array
+	for (int i = 0; i < MAX_KEYS; ++i)
+		keys[i] = KEY_IDLE;
+
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			playfield[i][j] = playfieldOriginal[i][j];
+		}
+	}
+
+	//PACMAN INITIALIZING NICE FRESCO sexo
+
+	img_pacman = pacman_birth;
+
+	//Init variables
+	//size: 104x82
+
+	Pacman.InitPacman(13, 23, 0, 0, -1, 0, true);
+	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
+	
+	int w;
+	SDL_QueryTexture(img_background, NULL, NULL, &w, NULL);
+	Scene.Init(0, 0, w, WINDOW_HEIGHT, 4);
+
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			Food[i][j].Init(32 * i, 32 * j, 32, 32, 10);
+		}
+	}
+
+	//lives an points
+	Status.SetLives(2);
+	Status.SetScore(0);
+	Status.SetGameOverR(0);
+}
+
 bool Game::Init()
 {
 	//Initialize SDL with all subsystems
@@ -52,14 +94,15 @@ bool Game::Init()
 	//Init variables
 	//size: 104x82
 	
-	Status.Status(0, 2, true, 0);
+	Status.Status(0, 2, true, 0, 0);
+
 	Pacman.InitPacman( 13, 23, 0, 0, -1, 0, true);
 	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
 
 	idx_shot = 0;
 	int w;
 	SDL_QueryTexture(img_background, NULL, NULL, &w, NULL);
-	Scene.Init(0, 0, w, WINDOW_HEIGHT, 4);
+	Scene.Init(0, 0, w, WINDOW_HEIGHT, 0);
 
 	for (int i = 0; i < H; i++)
 	{
@@ -138,6 +181,16 @@ bool Game::LoadImages()
 		SDL_Log("IMG_Init, failed to init required png support: %s\n", IMG_GetError());
 		return false;
 	}
+	img_menu = SDL_CreateTextureFromSurface(Renderer, IMG_Load("menu_screen.png"));
+	if (img_menu == NULL) {
+		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		return false;
+	}
+	img_gameover = SDL_CreateTextureFromSurface(Renderer, IMG_Load("gameover.png"));
+	if (img_gameover == NULL) {
+		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		return false;
+	}
 	img_background = SDL_CreateTextureFromSurface(Renderer, IMG_Load("background.png"));
 	if (img_background == NULL) {
 		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
@@ -183,6 +236,16 @@ bool Game::LoadImages()
 		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
 		return false;
 	}
+	img_life = SDL_CreateTextureFromSurface(Renderer, IMG_Load("Sprites/pacman/pacman_left.png"));
+	if (img_life == NULL) {
+		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		return false;
+	}
+	img_score = SDL_CreateTextureFromSurface(Renderer, IMG_Load("numbers.png"));
+	if (img_score == NULL) {
+		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		return false;
+	}
 
 	img_pacman = pacman_birth;
 
@@ -199,6 +262,10 @@ void Game::Release()
 	SDL_DestroyTexture(pacman_right);
 	SDL_DestroyTexture(pacman_birth);
 	SDL_DestroyTexture(img_food);
+	SDL_DestroyTexture(img_menu);
+	SDL_DestroyTexture(img_gameover);
+	SDL_DestroyTexture(img_score);
+	SDL_DestroyTexture(img_life);
 	IMG_Quit();
 
 	// Free Audios
@@ -357,7 +424,7 @@ void Game::Logic_Pacman()
 		y += vy;
 
 		// what's in the new location?
-		if (playfield[y][x] == '·')
+		if (playfield[y][x] == 'Â·')
 		{
 			Status.SetScore(Status.GetScore() + 10);
 			LOG("+10");
@@ -625,7 +692,7 @@ bool Game::Update()
 	{
 		for (int j = 0; j < W; j++)
 		{
-			if (playfield[i][j] == '·')
+			if (playfield[i][j] == 'Â·')
 				return false;
 		}
 	}
@@ -647,6 +714,57 @@ void Game::GetRect2(int* x, int* y, int* w, int* h) {
 	}
 }
 
+void Game::GetRect3(int* posx, int* posy, int* w, int* h, int x, int y, int _w, int _h) {
+	*posx = x;
+	*posy = y;
+	*w = _w;
+	*h = _h;
+}
+
+void Game::DrawMenu()
+{
+	SDL_Rect destRC;
+	SDL_Rect srcRC;
+
+	
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+	
+	SDL_RenderClear(Renderer);
+	
+	Scene.GetRect(&destRC.x, &destRC.y, &destRC.w, &destRC.h);
+	SDL_RenderCopy(Renderer, img_menu, NULL, &destRC);
+
+	SDL_RenderPresent(Renderer);
+}
+
+bool Game::GameOver() {
+	SDL_Rect destRC;
+	SDL_Rect srcRC;
+
+	bool state = (SDL_GetTicks() / 100) % 2;
+
+	if (state == 1) {
+		Status.AddGameOverR();
+	}
+
+	if(Status.GetGameOverR()==3000) {
+		return true;
+	}
+	
+	
+	SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 255);
+	SDL_RenderClear(Renderer);
+
+	if (((SDL_GetTicks() / 100) % 2) == 0) {
+		GetRect3(&destRC.x, &destRC.y, &destRC.w, &destRC.h, 0, (792 / 2), 896, 200);
+		SDL_RenderCopy(Renderer, img_gameover, NULL, &destRC);
+	}
+
+	SDL_RenderPresent(Renderer);
+	
+	return false;
+}
+
 void Game::Draw()
 {
 	SDL_Rect destRC;
@@ -666,15 +784,15 @@ void Game::Draw()
 	//Draw scene
 	Scene.GetRect(&destRC.x, &destRC.y, &destRC.w, &destRC.h);
 	SDL_RenderCopy(Renderer, img_background, NULL, &destRC);
-	destRC.x += destRC.w;
-	SDL_RenderCopy(Renderer, img_background, NULL, &destRC);
+	/*destRC.x += destRC.w;
+	SDL_RenderCopy(Renderer, img_background, NULL, &destRC);*/
 
 	//Draw Food
 	for (int i = 0; i < H; i++)
 	{
 		for (int j = 0; j < W; j++)
 		{
-			if (playfield[i][j] == '·')
+			if (playfield[i][j] == 'Â·')
 			{
 				Food[i][j].GetRect(&destRC.y, &destRC.x, &destRC.w, &destRC.h);
 				SDL_RenderCopy(Renderer, img_food, NULL, &destRC);
@@ -697,8 +815,41 @@ void Game::Draw()
 	GetRect2(&srcRC.x, &srcRC.y, &srcRC.w, &srcRC.h);
 	SDL_RenderCopy(Renderer, img_pacman, &srcRC, &destRC);
 	//if (god_mode) SDL_RenderDrawRect(Renderer, &rc);
-	
-	
+
+	//Draw lives
+	if (Status.GetLives() > 1) {
+		GetRect3(&destRC.x, &destRC.y, &destRC.w, &destRC.h, 512, 448, 32, 32);
+		GetRect3(&srcRC.x, &srcRC.y, &srcRC.w, &srcRC.h, 0, 0, 32, 32);
+		SDL_RenderCopy(Renderer, img_life, &srcRC, &destRC);
+	}
+	int uW = 0, tW = 0, hW = 0, thW = 0;
+
+	int score = Status.GetScore();
+
+	uW = (score % 10) * 32;
+	score = score / 10;
+	tW = (score % 10) * 32;
+	score = score / 10;
+	hW = (score % 10) * 32;
+	score = score / 10;
+	thW = (score % 10) * 32;
+
+	GetRect3(&destRC.x, &destRC.y, &destRC.w, &destRC.h, 512, 480, 32, 32);
+	GetRect3(&srcRC.x, &srcRC.y, &srcRC.w, &srcRC.h, uW, 0, 32, 32);
+	SDL_RenderCopy(Renderer, img_score, &srcRC, &destRC);
+
+	GetRect3(&destRC.x, &destRC.y, &destRC.w, &destRC.h, 480, 480, 32, 32);
+	GetRect3(&srcRC.x, &srcRC.y, &srcRC.w, &srcRC.h, tW, 0, 32, 32);
+	SDL_RenderCopy(Renderer, img_score, &srcRC, &destRC);
+
+	GetRect3(&destRC.x, &destRC.y, &destRC.w, &destRC.h, 448, 480, 32, 32);
+	GetRect3(&srcRC.x, &srcRC.y, &srcRC.w, &srcRC.h, hW, 0, 32, 32);
+	SDL_RenderCopy(Renderer, img_score, &srcRC, &destRC);
+
+	GetRect3(&destRC.x, &destRC.y, &destRC.w, &destRC.h, 416, 480, 32, 32);
+	GetRect3(&srcRC.x, &srcRC.y, &srcRC.w, &srcRC.h, thW, 0, 32, 32);
+	SDL_RenderCopy(Renderer, img_score, &srcRC, &destRC);
+
 	//Update screen
 	SDL_RenderPresent(Renderer);
 }
