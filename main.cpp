@@ -7,26 +7,31 @@ int main(int argc, char* args[])
 
 	bool end = false;
 
-	//
-		while (game.UpdateMenu() == false)
+	while (game.UpdateMenu() == false)
+	{
+		if (game.GetContinueMenu() == true)
 		{
-			if (game.GetContinueMenu() == true)
+			end = false;
+			while (!end)
 			{
-				end = false;
-				while (!end)
-				{
-					end = game.Update();
-					game.Logic_Pacman();
-					game.Logic_Ghost();
-					game.Draw();
-					SDL_Delay(50);
-				}
+				end = game.Update();
 
-				game.ResetVariables();
+				game.Logic_Pacman();
+
+				if (game.CheckForDeath() == false)
+					game.Logic_Ghost();
+
+				game.CheckForDeath();
+				game.Frightened();
+
+				game.Draw();
+				SDL_Delay(100);
 			}
+
+			game.ResetVariables();
 		}
-	//}
-	//
+	}
+
 	game.Release();
 	return 0;
 }

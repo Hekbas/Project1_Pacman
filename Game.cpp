@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <iostream>
+#include <stdlib.h>
 
 Game::Game() {}
 Game::~Game() {}
@@ -11,48 +12,6 @@ Game::Game(char playfield[H][W])
 	this->playfield[H][W] = playfield[H][W];
 }
 
-
-
-void Game::ResetVariables()
-{
-	//Initialize keys array
-	for (int i = 0; i < MAX_KEYS; ++i)
-		keys[i] = KEY_IDLE;
-
-	for (int i = 0; i < H; i++)
-	{
-		for (int j = 0; j < W; j++)
-		{
-			playfield[i][j] = playfieldOriginal[i][j];
-		}
-	}
-
-	//PACMAN INITIALIZING NICE FRESCO sexo
-
-	img_pacman = pacman_birth;
-
-	//Init variables
-	//size: 104x82
-
-	Pacman.InitPacman(13, 23, 0, 0, -1, 0, true);
-	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
-	
-	int w;
-	SDL_QueryTexture(img_background, NULL, NULL, &w, NULL);
-	Scene.Init(0, 0, w, WINDOW_HEIGHT, 4);
-
-	for (int i = 0; i < H; i++)
-	{
-		for (int j = 0; j < W; j++)
-		{
-			Food[i][j].Init(32 * i, 32 * j, 32, 32, 10);
-		}
-	}
-
-	//lives an points
-	Status.SetLives(2);
-	Status.SetScore(0);
-}
 
 bool Game::Init()
 {
@@ -93,7 +52,7 @@ bool Game::Init()
 	//Init variables
 	//size: 104x82
 	
-	Status.Status(0, 2);
+	Status.Status(0, 2, true, 0);
 	Pacman.InitPacman( 13, 23, 0, 0, -1, 0, true);
 	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
 
@@ -281,26 +240,77 @@ bool Game::Input()
 	return true;
 }
 
-void Game::DeathSequence()
+
+void Game::Frightened()
 {
-	Pacman.SetX(13);
-	Pacman.SetY(23);
-	Pacman.SetVx(-1);
-	Pacman.SetVy(0);
-
-	/*if (status.frightened == true)
+	if (Status.GetFrightened() > 0)
 	{
-		status.frightened = false;
-	}*/
-	//else
-	//{
-		Status.SetLives(Status.GetLives() - 1);
+		Status.SetFrightened(Status.GetFrightened()-1);
+	}
+	else
+	{
+		LOG("END_OF_FRIGHT!");
+	}
+}
 
-		GhostRed.SetX(13);
-		GhostRed.SetY(11);
-		GhostRed.SetVx(-1);
-		GhostRed.SetVy(0);
-	//}
+bool Game::CheckForDeath()
+{
+	int x = Pacman.GetX();
+	int y = Pacman.GetY();
+
+	int xG = GhostRed.GetX();
+	int yG = GhostRed.GetY();
+
+	if (x == xG && y == yG)
+	{
+		/*if (status.frightened == true)
+		{
+			status.frightened = false;
+			*/
+			GhostRed.SetX(13);
+			GhostRed.SetY(11);
+			GhostRed.SetVx(-1);
+			GhostRed.SetVy(0);
+		//}
+		//else
+		//{
+			img_pacman = pacman_up;
+			Status.SetLives(Status.GetLives() - 1);
+
+			Pacman.SetX(13);
+			Pacman.SetY(23);
+			Pacman.SetVx(-1);
+			Pacman.SetVy(0);
+			Pacman.SetVxTurn(-1);
+			Pacman.SetVyTurn(0);
+
+			return true;
+		//}
+	}
+
+	return false;
+}
+
+void Game::ResetVariables()
+{
+	//reset playfield
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+		{
+			playfield[i][j] = playfieldOriginal[i][j];
+		}
+	}
+
+	//reset pacaman nice fresco $3xo
+	img_pacman = pacman_birth;
+
+	//lives an points
+	Status.SetLives(2);
+	Status.SetScore(0);
+
+	Pacman.SetVxTurn(-1);
+	Pacman.SetVyTurn(0);
 }
 
 void Game::Logic_Pacman()
@@ -315,62 +325,58 @@ void Game::Logic_Pacman()
 	int xG = GhostRed.GetX();
 	int yG = GhostRed.GetY();
 
-	//check for death
-	if (x == xG && y == yG)
-	{
-		DeathSequence();
-	}
+	// delete PacMan from old position
+	playfield[y][x] = ' ';
+
+	if (x == 0 && y == 14 && vx == -1)  //left teleport
+		x = 27;
+	else if (x == 27 && y == 14 && vx == 1)  //right teleport
+		x = 0;
 	else
 	{
-		// delete PacMan from old position
-		playfield[y][x] = ' ';
+		// new coordinates (turn)
+		int xTurn = vxTurn + x;
+		int yTurn = vyTurn + y;
+		// new coordinates (straight)
+		int xStraight = vx + x;
+		int yStraight = vy + y;
 
-		if (x == 0 && y == 14 && vx == -1)  //left teleport
-			x = 27;
-		else if (x == 27 && y == 14 && vx == 1)  //right teleport
-			x = 0;
-		else
+		if (playfield[yTurn][xTurn] != '#')    //try turning
 		{
-			// new coordinates (turn)
-			int xTurn = vxTurn + x;
-			int yTurn = vyTurn + y;
-			// new coordinates (straight)
-			int xStraight = vx + x;
-			int yStraight = vy + y;
-
-			if (playfield[yTurn][xTurn] != '#')    //try turning
-			{
-				vx = vxTurn;
-				vy = vyTurn;
-			}
-			else if (playfield[yStraight][xStraight] == '#')    //try going straight
-			{
-				vx = 0;
-				vy = 0;
-			}
-
-			// update PacMan's coordinate
-			x += vx;
-			y += vy;
-
-			// what's in the new location?
-			if (playfield[y][x] == '·')
-			{
-				Status.SetScore(Status.GetScore() + 10);
-				LOG("+10");
-			}
-			else if (playfield[y][x] == '+')
-			{
-				Status.SetScore(Status.GetScore() + 50);
-				LOG("+50");
-			}
+			vx = vxTurn;
+			vy = vyTurn;
 		}
-		// change xy
-		Pacman.SetX(x);
-		Pacman.SetY(y);
-		Pacman.SetVx(vx);
-		Pacman.SetVy(vy);
+		else if (playfield[yStraight][xStraight] == '#')    //try going straight
+		{
+			vx = 0;
+			vy = 0;
+		}
+
+		// update PacMan's coordinate
+		x += vx;
+		y += vy;
+
+		// what's in the new location?
+		if (playfield[y][x] == '·')
+		{
+			Status.SetScore(Status.GetScore() + 10);
+			LOG("+10");
+		}
+		else if (playfield[y][x] == '+')
+		{
+			Status.SetScore(Status.GetScore() + 50);
+			Status.SetFrightened(80);
+			LOG("+50");
+		}
 	}
+	// change xy
+	Pacman.SetX(x);
+	Pacman.SetY(y);
+	Pacman.SetVx(vx);
+	Pacman.SetVy(vy);
+
+	Pacman.SetVxTurn(vxTurn);
+	Pacman.SetVyTurn(vyTurn);
 }
 
 void Game::Logic_Ghost()
@@ -385,10 +391,70 @@ void Game::Logic_Ghost()
 	int xP = Pacman.GetX();
 	int yP = Pacman.GetY();
 	
-	//check for death
-	if (x == xP && y == yP)
+	if (Status.GetFrightened() > 0)
 	{
-		DeathSequence();
+		srand(time(NULL));
+
+		if (logic[y][x] == 'I')  //chek for intersections
+		{
+			char bestPath;
+			int i = rand() % (y + 1) + (y - 1);
+			int j = rand() % (x + 1) + (x - 1);
+
+			while ((logic[i][j] != 'L' &&
+					logic[i][j] != 'R' &&
+					logic[i][j] != 'U' &&
+					logic[i][j] != 'D') &&
+					logic[i][j] != posOld)
+			{
+				i = rand() % (y + 1) + (y - 1);
+				j = rand() % (x + 1) + (x - 1);
+			}
+
+			bestPath = logic[i][j];
+
+			//change ghost speed to follow "best" path
+			switch (bestPath)
+			{
+			case 'L': GhostRed.SetVx(-1); GhostRed.SetVy(0); break;
+			case 'R': GhostRed.SetVx(1); GhostRed.SetVy(0);  break;
+			case 'U': GhostRed.SetVx(0); GhostRed.SetVy(-1); break;
+			case 'D': GhostRed.SetVx(0); GhostRed.SetVy(1);  break;
+			default: break;
+			}
+		}
+		else if (logic[y][x] == 'C')  //chek for corners
+		{
+			if (vx != 0)
+			{
+				GhostRed.SetVx(0);
+
+				if (logic[y - 1][x] != '#') //check UP
+					GhostRed.SetVy(-1);
+				else
+					GhostRed.SetVy(1);
+			}
+			else
+			{
+				GhostRed.SetVy(0);
+
+				if (logic[y][x - 1] != '#') //check LEFT
+					GhostRed.SetVx(-1);
+				else
+					GhostRed.SetVx(1);
+			}
+		}
+		else    //set actual pos as posOld
+		{
+			switch (logic[y][x])
+			{
+			case 'L': GhostRed.SetPosOld('L');  break;
+			case 'R': GhostRed.SetPosOld('R');  break;
+			case 'U': GhostRed.SetPosOld('U');  break;
+			case 'D': GhostRed.SetPosOld('D');  break;
+			default: break;
+			}
+		}
 	}
 	else
 	{
@@ -477,15 +543,16 @@ void Game::Logic_Ghost()
 			}
 		}
 
-		// update ghost pos
-		x += GhostRed.GetVx();
-		y += GhostRed.GetVy();
-
-
-		GhostRed.SetX(x);
-		GhostRed.SetY(y);
 	}
+	
+	// update ghost pos
+	x += GhostRed.GetVx();
+	y += GhostRed.GetVy();
+
+	GhostRed.SetX(x);
+	GhostRed.SetY(y);
 }
+
 
 bool Game::UpdateMenu()
 {
@@ -511,6 +578,7 @@ bool Game::GetContinueMenu()
 {
 	return continuemenu;
 }
+
 
 bool Game::Update()
 {
@@ -562,8 +630,6 @@ bool Game::Update()
 		}
 	}
 	return true;
-
-
 }
 
 void Game::GetRect2(int* x, int* y, int* w, int* h) {
@@ -635,6 +701,4 @@ void Game::Draw()
 	
 	//Update screen
 	SDL_RenderPresent(Renderer);
-
-	SDL_Delay(100);	// 1000/10 = 100 fps max
 }
