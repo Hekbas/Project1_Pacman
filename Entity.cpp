@@ -15,10 +15,11 @@ void Entity::Init(int posx, int posy, int w, int h, int s)
 	height = h;
 	is_alive = true;
 }
-void Entity::Status(int score, int lives)
+void Entity::Status(int score, int lives, int GameOverR)
 {
 	this->score = score;
 	this->lives = lives;
+	this->GameOverR = GameOverR;
 }
 void Entity::InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bool is_alive)
 {
@@ -94,6 +95,10 @@ void Entity::SetScore(int score) { this->score = score; }
 
 int Entity::GetLives() { return lives; }
 void Entity::SetLives(int lives) { this->lives = lives; }
+
+int Entity::GetGameOverR() { return GameOverR; }
+void Entity::SetGameOverR(int GameOverR) { this->GameOverR = GameOverR; }
+void Entity::AddGameOverR() { GameOverR++; }
 
 void Entity::Move(int dx, int dy)
 {

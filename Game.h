@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include<sstream>
 
 #include "SDL/include/SDL.h"
 #include "SDL_image/include/SDL_image.h"
@@ -37,17 +38,20 @@ public:
 	void DeathSequence();
 	bool Update();
 	void GetRect2(int* x, int* y, int* w, int* h);
+	void GetRect3(int* posx, int* posy, int* w, int* h, int x, int y, int _w, int _h);
 	void Draw();
+	void DrawMenu();
 
 	bool UpdateMenu();
 	bool GetContinueMenu();
 
 	void ResetVariables();
+	bool GameOver();
 
 private:
 	SDL_Window* Window;
 	SDL_Renderer* Renderer;
-	SDL_Texture* img_background, * img_pacman, * img_food, *img_powerup, * img_ghostRed;
+	SDL_Texture* img_background, * img_pacman, * img_food, * img_powerup, * img_ghostRed, * img_menu, * img_gameover, * img_life, * img_score;
 	SDL_Texture* pacman_up, * pacman_down, * pacman_left, * pacman_right, * pacman_birth;
 	Mix_Chunk* gamestartsound, * wakasound_1, * wakasound_2, * deathsound, * eatfruitsound, * eatghostsound, * powerpelletsound;
 

@@ -6,20 +6,31 @@ int main(int argc, char* args[])
 	if (!game.Init()) return -1;
 
 	bool end = false;
+	bool gameover = false;
+	bool gomenu = false;
 
 	//
 		while (game.UpdateMenu() == false)
 		{
+			game.DrawMenu();
+
 			if (game.GetContinueMenu() == true)
 			{
 				end = false;
+				gameover = false;
 				while (!end)
 				{
-					end = game.Update();
+					gameover = game.Update();
 					game.Logic_Pacman();
 					game.Logic_Ghost();
 					game.Draw();
-					SDL_Delay(50);
+					if (gameover == true) {
+						while (!gomenu) {
+							gomenu = game.GameOver();
+						}
+						end = true;
+					}
+					SDL_Delay(100);
 				}
 
 				game.ResetVariables();
