@@ -7,13 +7,14 @@ public:
 	~Entity();
 
 	void Init(int posx, int posy, int w, int h, int s);
-	void Status(int score, int lives, int GameOverR);
+
+	void Status(int score, int lives, bool chase, int frightened, int GameOverR);
+
 	void InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bool is_alive);
 	void InitGhost(int x, int y, int vx, int vy, bool is_alive, bool chase, char posOld);
 
 	void GetRect(int *posx, int *posy, int *w, int *h);
 	void GetRectPacman(int* posx, int* posy, int* w, int* h);
-	char GetType();
 
 	int GetX();
 	void SetX(int x);
@@ -33,14 +34,10 @@ public:
 	int GetVyTurn();
 	void SetVyTurn(int vyTurn);
 
-	bool GetChase();
 	char GetPosOld();
 	void SetPosOld(char posOld);
 
 	int  GetWidth();
-	void ShutDown(); 
-	bool IsAlive();
-	void Move(int dx, int dy);
 
 	int GetScore();
 	void SetScore(int score);
@@ -48,9 +45,16 @@ public:
 	int GetLives();
 	void SetLives(int lives);
 
+	bool GetChase();
+	void SetChase(bool chase);
+
+	int GetFrightened();
+	void SetFrightened(int frightened);
+
 	int GetGameOverR();
 	void SetGameOverR(int GameOverR);
 	void AddGameOverR();
+
 
 private:
 	int x, y;
@@ -58,12 +62,14 @@ private:
 	int vxTurn, vyTurn;
 
 	int width, height;
-	int speed;
-	bool is_alive;
-	bool chase;
 
 	char posOld;
+
 	int score;
 	int lives;
+
+	bool chase;
+	int frightened;
+
 	int GameOverR;
 };

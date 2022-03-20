@@ -30,12 +30,14 @@ public:
 	bool Init();
 	bool LoadImages();
 	void Release();
-
 	bool Input();
 	bool LoadSound();
+
+	void Frightened();
+	bool CheckForDeath();
 	void Logic_Pacman();
 	void Logic_Ghost();
-	void DeathSequence();
+
 	bool Update();
 	void GetRect2(int* x, int* y, int* w, int* h);
 	void GetRect3(int* posx, int* posy, int* w, int* h, int x, int y, int _w, int _h);

@@ -2,7 +2,7 @@
 
 Entity::Entity()
 {
-	is_alive = false;
+
 }
 Entity::~Entity()
 {
@@ -13,13 +13,14 @@ void Entity::Init(int posx, int posy, int w, int h, int s)
 	y = posy;
 	width = w;
 	height = h;
-	is_alive = true;
 }
-void Entity::Status(int score, int lives, int GameOverR)
+void Entity::Status(int score, int lives, bool chase, int frightened,  int GameOverR)
 {
 	this->score = score;
 	this->lives = lives;
-	this->GameOverR = GameOverR;
+	this->chase = chase;
+	this->frightened = frightened;
+  this->GameOverR = GameOverR;
 }
 void Entity::InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bool is_alive)
 {
@@ -29,7 +30,6 @@ void Entity::InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bo
 	this->vy = vy;
 	this->vxTurn = vxTurn;
 	this->vyTurn = vyTurn;
-	this->is_alive = is_alive;
 
 	width = 32;
 	height = 32;
@@ -40,7 +40,6 @@ void Entity::InitGhost(int x, int y, int vx, int vy, bool is_alive, bool chase, 
 	this->y = y;
 	this->vx = vx;
 	this->vy = vy;
-	this->is_alive = is_alive;
 	this->chase = chase;
 	this->posOld = posOld;
 
@@ -80,15 +79,10 @@ void Entity::SetVxTurn(int vxTurn) { this->vxTurn = vxTurn; }
 int Entity::GetVyTurn() { return vyTurn; }
 void Entity::SetVyTurn(int vyTurn) { this->vyTurn = vyTurn; }
 
-bool Entity::GetChase() { return chase; }
-
 char Entity::GetPosOld() { return posOld; }
 void Entity::SetPosOld(char posOld) { this->posOld = posOld; }
 
 int Entity::GetWidth() { return width; }
-
-void Entity::ShutDown() { is_alive = false; }
-bool Entity::IsAlive() { return is_alive; }
 
 int Entity::GetScore() { return score; }
 void Entity::SetScore(int score) { this->score = score; }
@@ -96,12 +90,13 @@ void Entity::SetScore(int score) { this->score = score; }
 int Entity::GetLives() { return lives; }
 void Entity::SetLives(int lives) { this->lives = lives; }
 
+
+bool Entity::GetChase() { return chase; }
+void Entity::SetChase(bool chase) { this->chase = chase; }
+
+int Entity::GetFrightened() { return frightened; }
+void Entity::SetFrightened(int frightened) { this->frightened = frightened; }
+
 int Entity::GetGameOverR() { return GameOverR; }
 void Entity::SetGameOverR(int GameOverR) { this->GameOverR = GameOverR; }
 void Entity::AddGameOverR() { GameOverR++; }
-
-void Entity::Move(int dx, int dy)
-{
-	x += dx * speed;
-	y += dy * speed;
-}

@@ -9,35 +9,44 @@ int main(int argc, char* args[])
 	bool gameover = false;
 	bool gomenu = false;
 
-	//
-		while (game.UpdateMenu() == false)
+	while (game.Updat() == false)
+	{
+		if (game.GetContinueMenu() == true)
 		{
-			game.DrawMenu();
+        game.DrawMenu();
 
-			if (game.GetContinueMenu() == true)
-			{
-				end = false;
-				gameover = false;
-				while (!end)
-				{
-					gameover = game.Update();
-					game.Logic_Pacman();
-					game.Logic_Ghost();
-					game.Draw();
-					if (gameover == true) {
-						while (!gomenu) {
-							gomenu = game.GameOver();
-						}
-						end = true;
-					}
-					SDL_Delay(100);
-				}
+        if (game.GetContinueMenu() == true)
+        {
+          end = false;
+          gameover = false;
+          while (!end)
+          {
+            gameover = game.Update();
+            game.Logic_Pacman();
 
-				game.ResetVariables();
+            if (game.CheckForDeath() == false)
+              game.Logic_Ghost();
+            
+            game.Draw();
+            if (gameover == true) {
+              while (!gomenu) {
+                gomenu = game.GameOver();
+              }
+              end = true;
+            }
+            SDL_Delay(100);
+          }
+				game.CheckForDeath();
+				game.Frightened();
+
+				game.Draw();
+				SDL_Delay(100);
 			}
+
+			game.ResetVariables();
 		}
-	//}
-	//
+	}
+
 	game.Release();
 	return 0;
 }
