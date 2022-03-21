@@ -18,6 +18,8 @@ int main(int argc, char* args[])
             end = false;
             gameover = false;
 
+            game.startIntro();
+
             while (!end)
             {
                 gameover = game.Update();

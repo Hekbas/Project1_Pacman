@@ -38,6 +38,7 @@ public:
 	void Logic_Pacman();
 	void Logic_Ghost();
 
+	void startIntro();
 	bool Update();
 	void GetRect2(int* x, int* y, int* w, int* h);
 	void GetRect3(int* posx, int* posy, int* w, int* h, int x, int y, int _w, int _h);

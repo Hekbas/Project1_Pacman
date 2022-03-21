@@ -23,7 +23,7 @@ bool Game::Init()
 	}
 
 	//Create window (title, x, y, w, h, flags)
-	Window = SDL_CreateWindow("PacMan Minigame", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+	Window = SDL_CreateWindow("PacMan Minigame - NoSus Studios", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 	if (Window == NULL)
 	{
 		SDL_Log("Unable to create window: %s", SDL_GetError());
@@ -46,12 +46,12 @@ bool Game::Init()
 	if (!LoadImages())
 		return false;
 
+	//Load sound
 	if (LoadSound() == false) { return false; }
 
+	Mix_Volume(-1, MIX_MAX_VOLUME / 2);
 	
 	//Init variables
-	//size: 104x82
-	
 	Status.Status(0, 2, true, 0, 0);
 
 	Pacman.InitPacman( 13, 23, 0, 0, -1, 0, true);
@@ -68,8 +68,6 @@ bool Game::Init()
 			Food[i][j].Init(32 * i, 32 * j, 32, 32, 10);
 		}
 	}
-
-	Mix_PlayChannel(-1, gamestartsound, 1);
 
 	return true;
 }
@@ -393,13 +391,18 @@ void Game::Logic_Pacman()
 		if (playfield[y][x] == -73)
 		{
 			Status.SetScore(Status.GetScore() + 10);
-			LOG("+10");
+
+			if ((Status.GetScore()/10) % 2 == 0)
+				Mix_PlayChannel(-1, wakasound_1, 0);
+			else
+				Mix_PlayChannel(-1, wakasound_2, 0);
 		}
 		else if (playfield[y][x] == '+')
 		{
 			Status.SetScore(Status.GetScore() + 50);
 			Status.SetFrightened(80);
-			LOG("+50");
+
+			Mix_PlayChannel(-1, powerpelletsound, 3);
 		}
 	}
 	// change xy
@@ -630,6 +633,13 @@ bool Game::GetContinueMenu()
 }
 
 
+void Game::startIntro()
+{
+	Draw();
+	Mix_PlayChannel(-1, gamestartsound, 0);
+	SDL_Delay(4000);
+}
+
 bool Game::Update()
 {
 	//Read Input
@@ -682,19 +692,19 @@ bool Game::Update()
 	return true;
 }
 
-void Game::GetRect2(int* x, int* y, int* w, int* h) {
+void Game::GetRect2(int* x, int* y, int* w, int* h)
+{
 	*y = 0;
 	*w = 32;
 	*h = 32;
+
 	bool state = (SDL_GetTicks() / 100) % 2;
-	if (state == 0) {
+
+	if (state == 0)
 		*x = *w * 0;
-		Mix_PlayChannel(-1, wakasound_1, 0);
-	}
-	if (state == 1) {
+
+	if (state == 1)
 		*x = *w * 1;
-		Mix_PlayChannel(-1, wakasound_2, 0);
-	}
 }
 
 void Game::GetRect3(int* posx, int* posy, int* w, int* h, int x, int y, int _w, int _h) {
