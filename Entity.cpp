@@ -1,12 +1,8 @@
 #include "Game.h"
 
-Entity::Entity()
-{
+Entity::Entity() {}
+Entity::~Entity() {}
 
-}
-Entity::~Entity()
-{
-}
 void Entity::Init(int posx, int posy, int w, int h, int s)
 {
 	x = posx;
@@ -14,14 +10,16 @@ void Entity::Init(int posx, int posy, int w, int h, int s)
 	width = w;
 	height = h;
 }
+
 void Entity::Status(int score, int lives, bool chase, int frightened,  int GameOverR)
 {
 	this->score = score;
 	this->lives = lives;
 	this->chase = chase;
 	this->frightened = frightened;
-  this->GameOverR = GameOverR;
+    this->GameOverR = GameOverR;
 }
+
 void Entity::InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bool is_alive)
 {
 	this->x = x;
@@ -34,6 +32,7 @@ void Entity::InitPacman(int x, int y, int vx, int vy, int vxTurn, int vyTurn, bo
 	width = 32;
 	height = 32;
 }
+
 void Entity::InitGhost(int x, int y, int vx, int vy, bool is_alive, bool chase, char posOld)
 {
 	this->x = x;
@@ -46,6 +45,7 @@ void Entity::InitGhost(int x, int y, int vx, int vy, bool is_alive, bool chase, 
 	width = 32;
 	height = 32;
 }
+
 void Entity::GetRect(int *posx, int *posy, int *w, int *h)
 {
 	*posx = x;
@@ -53,6 +53,7 @@ void Entity::GetRect(int *posx, int *posy, int *w, int *h)
 	*w = width;
 	*h = height;
 }
+
 void Entity::GetRectPacman(int* posx, int* posy, int* w, int* h)
 {
 	*posx = x*32;

@@ -13,7 +13,6 @@ Game::Game(char playfield[H][W])
 }
 
 
-
 bool Game::Init()
 {
 	//Initialize SDL with all subsystems
@@ -58,7 +57,6 @@ bool Game::Init()
 	Pacman.InitPacman( 13, 23, 0, 0, -1, 0, true);
 	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
 
-	idx_shot = 0;
 	int w;
 	SDL_QueryTexture(img_background, NULL, NULL, &w, NULL);
 	Scene.Init(0, 0, w, WINDOW_HEIGHT, 0);
@@ -205,8 +203,14 @@ bool Game::LoadImages()
 		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
 		return false;
 	}
+	img_scaredBlue = SDL_CreateTextureFromSurface(Renderer, IMG_Load("Sprites/hunt/scared_blue.png"));
+	if (img_scaredBlue == NULL) {
+		SDL_Log("CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		return false;
+	}
 
 	img_pacman = pacman_birth;
+	img_ghost = img_ghostRed;
 
 	return true;
 }
@@ -272,10 +276,11 @@ void Game::Frightened()
 	if (Status.GetFrightened() > 0)
 	{
 		Status.SetFrightened(Status.GetFrightened()-1);
+		img_ghost = img_scaredBlue;
 	}
 	else
 	{
-		LOG("END_OF_FRIGHT!");
+		img_ghost = img_ghostRed;
 	}
 }
 
@@ -289,17 +294,17 @@ bool Game::CheckForDeath()
 
 	if (x == xG && y == yG)
 	{
-		/*if (status.frightened == true)
+		GhostRed.SetX(13);
+		GhostRed.SetY(11);
+		GhostRed.SetVx(-1);
+		GhostRed.SetVy(0);
+
+		if (Status.GetFrightened() > 0)
 		{
-			status.frightened = false;
-			*/
-			GhostRed.SetX(13);
-			GhostRed.SetY(11);
-			GhostRed.SetVx(-1);
-			GhostRed.SetVy(0);
-		//}
-		//else
-		//{
+			Status.SetFrightened(0);
+		}
+		else
+		{
 			img_pacman = pacman_up;
 			Status.SetLives(Status.GetLives() - 1);
 
@@ -311,7 +316,7 @@ bool Game::CheckForDeath()
 			Pacman.SetVyTurn(0);
 
 			return true;
-		//}
+		}
 	}
 
 	return false;
@@ -418,31 +423,48 @@ void Game::Logic_Ghost()
 
 	int xP = Pacman.GetX();
 	int yP = Pacman.GetY();
-	
+
+	char rPath = 'N';
+	bool rExists = false;
+
 	if (Status.GetFrightened() > 0)
 	{
 		srand(time(NULL));
 
 		if (logic[y][x] == 'I')  //chek for intersections
 		{
-			char bestPath;
-			int i = rand() % (y + 1) + (y - 1);
-			int j = rand() % (x + 1) + (x - 1);
+			//Choose random path
+			
 
-			while ((logic[i][j] != 'L' &&
-					logic[i][j] != 'R' &&
-					logic[i][j] != 'U' &&
-					logic[i][j] != 'D') &&
-					logic[i][j] != posOld)
+			while (rExists == false)
 			{
-				i = rand() % (y + 1) + (y - 1);
-				j = rand() % (x + 1) + (x - 1);
+				int rNumber = rand() % ((4 + 1) - 1) + 1;
+				
+				switch (rNumber)
+				{
+				case 1: rPath = 'L'; break;
+				case 2: rPath = 'R'; break;
+				case 3: rPath = 'U'; break;
+				case 4: rPath = 'D'; break;
+				default: break;
+				}
+
+				for (int i = y - 1; i < y + 2; i++)
+				{
+					for (int j = x - 1; j < x + 2; j++)
+					{
+						if (logic[i][j] == rPath && logic[i][j] != posOld)
+						{
+							rExists = true;
+							break;
+						}
+					}
+					if (rExists == true) break;
+				}
 			}
 
-			bestPath = logic[i][j];
-
-			//change ghost speed to follow "best" path
-			switch (bestPath)
+			//change ghost speed to follow "random" path
+			switch (rPath)
 			{
 			case 'L': GhostRed.SetVx(-1); GhostRed.SetVy(0); break;
 			case 'R': GhostRed.SetVx(1); GhostRed.SetVy(0);  break;
@@ -572,7 +594,7 @@ void Game::Logic_Ghost()
 		}
 
 	}
-	
+
 	// update ghost pos
 	x += GhostRed.GetVx();
 	y += GhostRed.GetVy();
@@ -708,7 +730,7 @@ bool Game::GameOver() {
 		Status.AddGameOverR();
 	}
 
-	if(Status.GetGameOverR()==3000) {
+	if(Status.GetGameOverR()==800) {
 		return true;
 	}
 	
@@ -769,7 +791,7 @@ void Game::Draw()
 	//Ghost
 	GhostRed.GetRectPacman(&destRC.x, &destRC.y, &destRC.w, &destRC.h);
 	GetRect2(&srcRC.x, &srcRC.y, &srcRC.w, &srcRC.h);
-	SDL_RenderCopy(Renderer, img_ghostRed, &srcRC, &destRC);
+	SDL_RenderCopy(Renderer, img_ghost, &srcRC, &destRC);
 
 	//Draw Pacman
 	Pacman.GetRectPacman(&destRC.x, &destRC.y, &destRC.w, &destRC.h);

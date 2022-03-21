@@ -53,15 +53,16 @@ public:
 private:
 	SDL_Window* Window;
 	SDL_Renderer* Renderer;
-	SDL_Texture* img_background, * img_pacman, * img_food, * img_powerup, * img_ghostRed, * img_menu, * img_gameover, * img_life, * img_score;
-	SDL_Texture* pacman_up, * pacman_down, * pacman_left, * pacman_right, * pacman_birth;
+
+	SDL_Texture* img_background, * img_food, * img_powerup,  * img_menu, * img_gameover, * img_life, * img_score;
+	SDL_Texture* img_pacman, * pacman_up, * pacman_down, * pacman_left, * pacman_right, * pacman_birth;
+	SDL_Texture* img_ghost, * img_ghostRed, * img_scaredBlue;
+
 	Mix_Chunk* gamestartsound, * wakasound_1, * wakasound_2, * deathsound, * eatfruitsound, * eatghostsound, * powerpelletsound;
 
 	Entity Pacman, GhostRed, Scene, Food[H][W], Status;
-	int idx_shot;
 
 	bool continuemenu;
-
 	bool god_mode;
 
 	enum KEY_STATE { KEY_IDLE, KEY_DOWN, KEY_REPEAT, KEY_UP };
