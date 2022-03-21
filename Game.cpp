@@ -13,47 +13,6 @@ Game::Game(char playfield[H][W])
 }
 
 
-void Game::ResetVariables()
-{
-	//Initialize keys array
-	for (int i = 0; i < MAX_KEYS; ++i)
-		keys[i] = KEY_IDLE;
-
-	for (int i = 0; i < H; i++)
-	{
-		for (int j = 0; j < W; j++)
-		{
-			playfield[i][j] = playfieldOriginal[i][j];
-		}
-	}
-
-	//PACMAN INITIALIZING NICE FRESCO sexo
-
-	img_pacman = pacman_birth;
-
-	//Init variables
-	//size: 104x82
-
-	Pacman.InitPacman(13, 23, 0, 0, -1, 0, true);
-	GhostRed.InitGhost(13, 11, -1, 0, true, true, NULL);
-	
-	int w;
-	SDL_QueryTexture(img_background, NULL, NULL, &w, NULL);
-	Scene.Init(0, 0, w, WINDOW_HEIGHT, 4);
-
-	for (int i = 0; i < H; i++)
-	{
-		for (int j = 0; j < W; j++)
-		{
-			Food[i][j].Init(32 * i, 32 * j, 32, 32, 10);
-		}
-	}
-
-	//lives an points
-	Status.SetLives(2);
-	Status.SetScore(0);
-	Status.SetGameOverR(0);
-}
 
 bool Game::Init()
 {
@@ -378,6 +337,8 @@ void Game::ResetVariables()
 
 	Pacman.SetVxTurn(-1);
 	Pacman.SetVyTurn(0);
+
+	Status.SetGameOverR(0);
 }
 
 void Game::Logic_Pacman()
@@ -424,7 +385,7 @@ void Game::Logic_Pacman()
 		y += vy;
 
 		// what's in the new location?
-		if (playfield[y][x] == '·')
+		if (playfield[y][x] == -73)
 		{
 			Status.SetScore(Status.GetScore() + 10);
 			LOG("+10");
@@ -692,7 +653,7 @@ bool Game::Update()
 	{
 		for (int j = 0; j < W; j++)
 		{
-			if (playfield[i][j] == '·')
+			if (playfield[i][j] == -73)
 				return false;
 		}
 	}
@@ -792,7 +753,7 @@ void Game::Draw()
 	{
 		for (int j = 0; j < W; j++)
 		{
-			if (playfield[i][j] == '·')
+			if (playfield[i][j] == -73)
 			{
 				Food[i][j].GetRect(&destRC.y, &destRC.x, &destRC.w, &destRC.h);
 				SDL_RenderCopy(Renderer, img_food, NULL, &destRC);
