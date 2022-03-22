@@ -114,7 +114,6 @@ bool Game::LoadSound() {
 		return false;
 	}
 
-
 	eatghostsound = Mix_LoadWAV("eatghostsound.wav");
 	if (eatghostsound == NULL) {
 		SDL_Log("Mix_LoadWAV failed: %s\n", Mix_GetError());
@@ -123,6 +122,12 @@ bool Game::LoadSound() {
 
 	powerpelletsound = Mix_LoadWAV("powerpelletsound.wav");
 	if (powerpelletsound == NULL) {
+		SDL_Log("Mix_LoadWAV failed: %s\n", Mix_GetError());
+		return false;
+	}
+
+	siren_1 = Mix_LoadWAV("siren_1.wav");
+	if (siren_1 == NULL) {
 		SDL_Log("Mix_LoadWAV failed: %s\n", Mix_GetError());
 		return false;
 	}
@@ -275,10 +280,13 @@ void Game::Frightened()
 	{
 		Status.SetFrightened(Status.GetFrightened()-1);
 		img_ghost = img_scaredBlue;
+		Mix_Pause(0); //pause siren
 	}
 	else
 	{
 		img_ghost = img_ghostRed;
+		Mix_Pause(1); //pause powerpellet
+		Mix_Resume(0);//resume siren
 	}
 }
 
@@ -300,6 +308,8 @@ bool Game::CheckForDeath()
 		if (Status.GetFrightened() > 0)
 		{
 			Status.SetFrightened(0);
+			Status.SetScore(Status.GetScore() + 200);
+			Mix_PlayChannel(-1, eatghostsound, 0);
 		}
 		else
 		{
@@ -313,6 +323,8 @@ bool Game::CheckForDeath()
 			Pacman.SetVxTurn(-1);
 			Pacman.SetVyTurn(0);
 
+			Mix_PlayChannel(-1, deathsound, 0);
+
 			return true;
 		}
 	}
@@ -322,6 +334,7 @@ bool Game::CheckForDeath()
 
 void Game::ResetVariables()
 {
+
 	//reset playfield
 	for (int i = 0; i < H; i++)
 	{
@@ -334,12 +347,21 @@ void Game::ResetVariables()
 	//reset pacaman nice fresco $3xo
 	img_pacman = pacman_birth;
 
-	//lives an points
+	//lives and points
 	Status.SetLives(2);
 	Status.SetScore(0);
 
+	Pacman.SetX(13);
+	Pacman.SetY(23);
+	Pacman.SetVx(-1);
+	Pacman.SetVy(0);
 	Pacman.SetVxTurn(-1);
 	Pacman.SetVyTurn(0);
+
+	GhostRed.SetX(13);
+	GhostRed.SetY(11);
+	GhostRed.SetVx(-1);
+	GhostRed.SetVy(0);
 
 	Status.SetGameOverR(0);
 }
@@ -401,8 +423,7 @@ void Game::Logic_Pacman()
 		{
 			Status.SetScore(Status.GetScore() + 50);
 			Status.SetFrightened(80);
-
-			Mix_PlayChannel(-1, powerpelletsound, 3);
+			Mix_PlayChannel(1, powerpelletsound, -1);
 		}
 	}
 	// change xy
@@ -637,7 +658,9 @@ void Game::startIntro()
 {
 	Draw();
 	Mix_PlayChannel(-1, gamestartsound, 0);
-	SDL_Delay(4000);
+	SDL_Delay(4150);
+
+	Mix_PlayChannel(0, siren_1, -1);
 }
 
 bool Game::Update()

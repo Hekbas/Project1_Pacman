@@ -59,7 +59,7 @@ private:
 	SDL_Texture* img_pacman, * pacman_up, * pacman_down, * pacman_left, * pacman_right, * pacman_birth;
 	SDL_Texture* img_ghost, * img_ghostRed, * img_scaredBlue;
 
-	Mix_Chunk* gamestartsound, * wakasound_1, * wakasound_2, * deathsound, * eatfruitsound, * eatghostsound, * powerpelletsound;
+	Mix_Chunk* gamestartsound, * wakasound_1, * wakasound_2, * deathsound, * eatfruitsound, * eatghostsound, * powerpelletsound, *siren_1;
 
 	Entity Pacman, GhostRed, Scene, Food[H][W], Status;
 

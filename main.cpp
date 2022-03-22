@@ -36,6 +36,9 @@ int main(int argc, char* args[])
 
                 if (gameover == true)
                 {
+                    Mix_Pause(0); //pause siren_1
+                    Mix_Pause(1); //pause powerpellet
+
                     while (!gomenu)
                         gomenu = game.GameOver();
 
